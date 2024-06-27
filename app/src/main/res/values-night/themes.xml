@@ -2,9 +2,9 @@
     <!-- Base application theme. -->
     <style name="Theme.YummyRecipes" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
-        <item name="colorPrimary">@color/congo_pink</item>
-        <item name="colorPrimaryVariant">@color/chinese_black</item>
-        <item name="colorOnPrimary">@color/chinese_black</item>
+        <item name="colorPrimary">@color/aqua</item>
+        <item name="colorPrimaryVariant">@color/bg</item>
+        <item name="colorOnPrimary">@color/green</item>
 
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
