@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import azizi.mahsa.noteSample.data.model.NoteEntity
 import azizi.mahsa.noteSample.databinding.FragmentNoteBinding
+import azizi.mahsa.noteSample.utils.EDIT
 import azizi.mahsa.noteSample.utils.setupListWithAdapter
 import azizi.mahsa.noteSample.viewmodel.NoteViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -22,6 +23,11 @@ class NoteFragment :BottomSheetDialogFragment() {
     private val viewModel : NoteViewModel by viewModels()
     private var category = ""
     private var priority = ""
+    private var noteId = 0
+    private var type = ""
+    private var isEdit = false
+    private val categoriesList: MutableList<String> = mutableListOf()
+    private val prioriesList: MutableList<String> = mutableListOf()
     @Inject
     lateinit var entity: NoteEntity
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -38,6 +44,7 @@ class NoteFragment :BottomSheetDialogFragment() {
             //Spinners
             viewModel.loadCategoriesData()
             viewModel.categoriesList.observe(viewLifecycleOwner){
+                prioriesList.addAll(it)
                 categoriesSpinner.setupListWithAdapter(it){itItem->
                     category= itItem
                 }
@@ -45,9 +52,22 @@ class NoteFragment :BottomSheetDialogFragment() {
             //Spinner priority
             viewModel.loadPrioritiesData()
             viewModel.prioritiesList.observe(viewLifecycleOwner){
+                prioriesList.addAll(it)
                 prioritySpinner.setupListWithAdapter(it) {itItem->
                     priority=itItem
 
+                }
+            }
+            //Note data
+            if (type == EDIT) {
+                viewModel.getData(noteId)
+                viewModel.noteData.observe(viewLifecycleOwner) { itData ->
+                    itData.data?.let {
+                        titleEdt.setText(it.title)
+                        descEdt.setText(it.desc)
+                        categoriesSpinner.setSelection(categoriesList.getIndexFromList(it.category))
+                        prioritySpinner.setSelection(prioriesList.getIndexFromList(it.priority))
+                    }
                 }
             }
             //Click
@@ -72,4 +92,5 @@ class NoteFragment :BottomSheetDialogFragment() {
         super.onStop()
         _binding = null
     }
+ 
 }

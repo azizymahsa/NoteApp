@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import azizi.mahsa.noteSample.data.model.NoteEntity
 import azizi.mahsa.noteSample.data.repository.NoteRepository
+import azizi.mahsa.noteSample.utils.DataStatus
 import azizi.mahsa.noteSample.utils.EDUCATION
 import azizi.mahsa.noteSample.utils.HEALTH
 import azizi.mahsa.noteSample.utils.HIGH
@@ -22,7 +23,7 @@ class NoteViewModel @Inject constructor(private val repository: NoteRepository) 
     //Spinners
     val categoriesList = MutableLiveData<MutableList<String>> ()
     val prioritiesList = MutableLiveData<MutableList<String>> ()
-
+    val noteData =MutableLiveData<DataStatus<NoteEntity>>()
     fun loadCategoriesData() = viewModelScope.launch(Dispatchers.IO) {
        val data = mutableListOf(WORK, EDUCATION, HOME, HEALTH)
         categoriesList.postValue(data)
@@ -38,4 +39,11 @@ class NoteViewModel @Inject constructor(private val repository: NoteRepository) 
             repository.saveNote(entity)
         }
     }
+
+    fun getData(id: Int) = viewModelScope.launch {
+        repository.getNote(id).collect {
+            noteData.postValue(DataStatus.success(it, false))
+        }
+    }
+
 }
