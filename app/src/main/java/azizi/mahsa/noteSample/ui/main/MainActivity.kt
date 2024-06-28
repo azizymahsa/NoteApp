@@ -5,10 +5,19 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.View
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import azizi.mahsa.noteSample.R
 import azizi.mahsa.noteSample.data.model.NoteEntity
 import azizi.mahsa.noteSample.databinding.ActivityMainBinding
 import azizi.mahsa.noteSample.ui.main.note.NoteFragment
+import azizi.mahsa.noteSample.utils.BUNDLE_ID
+import azizi.mahsa.noteSample.utils.DELETE
+import azizi.mahsa.noteSample.utils.EDIT
+import azizi.mahsa.noteSample.utils.HIGH
+import azizi.mahsa.noteSample.utils.LOW
+import azizi.mahsa.noteSample.utils.NORMAL
 import azizi.mahsa.noteSample.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -51,6 +60,38 @@ class MainActivity : AppCompatActivity() {
                     adapter = notesAdapter
                 }
             }
+            //Filter
+            notesToolbar.setOnMenuItemClickListener {
+                when (it.itemId) {
+                    R.id.actionFilter -> {
+                        priorityFilter()
+                        return@setOnMenuItemClickListener true
+                    }
+                    else -> {
+                        return@setOnMenuItemClickListener false
+                    }
+                }
+            }
+            //Clicks
+            notesAdapter.setOnItemClickListener { entity, type ->
+                when (type) {
+                    EDIT -> {
+                        val noteFragment = NoteFragment()
+                        val bundle = Bundle()
+                        bundle.putInt(BUNDLE_ID, entity.id)
+                        noteFragment.arguments = bundle
+                        noteFragment.show(supportFragmentManager, NoteFragment().tag)
+                    }
+                    DELETE -> {
+                        noteEntity.id = entity.id
+                        noteEntity.title = entity.title
+                        noteEntity.desc = entity.desc
+                        noteEntity.category = entity.category
+                        noteEntity.priority = entity.priority
+                        viewModel.deleteNote(noteEntity)
+                    }
+                }
+            }
         }
     }
     private fun showEmpty(isShown: Boolean) {
@@ -64,7 +105,45 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+    //Search Menu
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.menu_toolbar, menu)
+        val search = menu.findItem(R.id.actionSearch)
+        val searchView = search.actionView as SearchView
+        searchView.queryHint = getString(R.string.search)
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
 
+            override fun onQueryTextSubmit(query: String): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                viewModel.getSearchNotes(newText)
+                return true
+            }
+        })
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    private fun priorityFilter() {
+        val builder = AlertDialog.Builder(this)
+
+        val priority = arrayOf("All", HIGH, NORMAL, LOW)
+        builder.setSingleChoiceItems(priority, selectedItem) { dialog, item ->
+            when (item) {
+                0 -> {
+                    viewModel.getAllNotes()
+                }
+                in 1..3 -> {
+                    viewModel.getFilterNotes(priority[item])
+                }
+            }
+            selectedItem = item
+            dialog.dismiss()
+        }
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
+    }
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
